@@ -1,9 +1,9 @@
 output "vpc_id" {
-  value = aws_vpc.default.id
+  value = aws_vpc.this.id
 }
 
 output "vpc_cidr" {
-  value = aws_vpc.default.cidr_block
+  value = aws_vpc.this.cidr_block
 }
 
 output "pub_subnet_ids" {
