@@ -14,12 +14,12 @@ variable "vpc_cidr" {
   type        = string
 }
 
-variable "public_subnet_cidrs" {
-  description = "Public subnet CIDRs"
-  type        = map(string)
+variable "public_subnet_azs" {
+  description = "AZ list for public subnets"
+  type        = list(string)
 }
 
-variable "private_subnet_cidrs" {
-  description = "Private subnet CIDRs"
-  type        = map(string)
+variable "private_subnet_azs" {
+  description = "AZ list for private subnets"
+  type        = list(string)
 }
