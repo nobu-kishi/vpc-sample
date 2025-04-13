@@ -1,21 +1,19 @@
-# VPC-Terraform
-
-## 使用技術
-- Terraform v1.4.0
+# VPC関連リソースのTerraform
 
 ## ディレクトリ構成
 ```
 .
 ├── README.md
 ├── envs
-│   └── stag
-│       ├── backend.tf
-│       ├── locals.tf
-│       ├── main.tf
-│       ├── provider.tf
-│       └── version.tf
+│   └── dev
+│       ├── main.tf
+│       ├── outputs.tf
+│       ├── terraform.tf
+│       ├── terraform.tfvars
+│       └── variables.tf
 └── module
     └── network
+        ├── locals.tf
         ├── main.tf
         ├── outputs.tf
         └── variables.tf
