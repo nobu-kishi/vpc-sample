@@ -1,4 +1,6 @@
 locals {
+  prefix = "${var.env}-${var.system_name}"
+
   public_subnet_cidrs = {
     for idx, az in var.public_subnet_azs :
     az => cidrsubnet(var.vpc_cidr, 8, idx)

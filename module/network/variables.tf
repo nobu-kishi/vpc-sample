@@ -1,24 +1,29 @@
-variable "name_prefix" {
-  description = "Name prefix"
+variable "env" {
+  description = "環境名"
+  type        = string
+}
+
+variable "system_name" {
+  description = "システム名"
   type        = string
 }
 
 variable "region" {
-  description = "AWS region"
+  description = "リージョン"
   type        = string
 }
 
 variable "vpc_cidr" {
-  description = "VPC CIDR"
+  description = "VPCのCIDR"
   type        = string
 }
 
 variable "public_subnet_azs" {
-  description = "AZ list for public subnets"
+  description = "パブリックサブネットのAZリスト"
   type        = list(string)
 }
 
 variable "private_subnet_azs" {
-  description = "AZ list for private subnets"
+  description = "プライベートサブネットのAZリスト"
   type        = list(string)
 }

@@ -1,7 +1,8 @@
 module "network" {
   source = "../../module/network"
 
-  name_prefix        = var.name_prefix
+  env                = var.env
+  system_name        = var.system_name
   region             = var.region
   vpc_cidr           = var.vpc_cidr
   public_subnet_azs  = var.public_subnet_azs

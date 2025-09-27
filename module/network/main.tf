@@ -9,7 +9,7 @@ resource "aws_vpc" "this" {
   enable_dns_support   = true
   enable_dns_hostnames = true
   tags = {
-    Name = "${var.name_prefix}-vpc"
+    Name = "${local.prefix}-vpc"
   }
 }
 
@@ -39,7 +39,7 @@ resource "aws_route_table" "public" {
     gateway_id = aws_internet_gateway.this.id
   }
   tags = {
-    Name = "${var.name_prefix}-public-rtb"
+    Name = "${local.prefix}-public-rtb"
   }
 }
 
@@ -77,7 +77,7 @@ resource "aws_subnet" "private" {
 #     nat_gateway_id = aws_nat_gateway.this.id
 #   }
 #   tags = {
-#     Name = "${var.name_prefix}-private-rtb"
+#     Name = "${local.prefix}-private-rtb"
 #   }
 # }
 
@@ -97,7 +97,7 @@ resource "aws_subnet" "private" {
 resource "aws_internet_gateway" "this" {
   vpc_id = aws_vpc.this.id
   tags = {
-    Name = "${var.name_prefix}-igw"
+    Name = "${local.prefix}-igw"
   }
 }
 
@@ -124,13 +124,13 @@ resource "aws_internet_gateway" "this" {
 
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_group
 resource "aws_cloudwatch_log_group" "vpc_flow_logs" {
-  name              = "/vpc-flow-logs/${var.name_prefix}/${aws_vpc.this.id}"
+  name              = "/vpc-flow-logs/${local.prefix}/${aws_vpc.this.id}"
   retention_in_days = 5
 }
 
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role
 resource "aws_iam_role" "vpc_flow_logs_role" {
-  name = "${var.name_prefix}-vpc-flow-logs-role"
+  name = "${local.prefix}-vpc-flow-logs-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -148,7 +148,7 @@ resource "aws_iam_role" "vpc_flow_logs_role" {
 
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy
 resource "aws_iam_role_policy" "vpc_flow_logs_policy" {
-  name = "${var.name_prefix}-vpc-flow-logs-inline-policy"
+  name = "${local.prefix}-vpc-flow-logs-inline-policy"
   role = aws_iam_role.vpc_flow_logs_role.id
 
   policy = jsonencode({
