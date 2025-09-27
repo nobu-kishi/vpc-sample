@@ -27,7 +27,7 @@ resource "aws_subnet" "public" {
   map_public_ip_on_launch = true
 
   tags = {
-    Name = "${var.name_prefix}-public-${each.key}"
+    Name = "${local.prefix}-public-${each.key}"
   }
 }
 
@@ -65,7 +65,7 @@ resource "aws_subnet" "private" {
   map_public_ip_on_launch = false
 
   tags = {
-    Name = "${var.name_prefix}-private-${each.key}"
+    Name = "${local.prefix}-private-${each.key}"
   }
 }
 
@@ -117,3 +117,66 @@ resource "aws_internet_gateway" "this" {
 #   subnet_id     = aws_subnet.public["a"].id
 #   depends_on    = [aws_internet_gateway.this]
 # }
+
+#--------------------------------------------------------------
+# VPCフローログ
+#--------------------------------------------------------------
+
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_group
+resource "aws_cloudwatch_log_group" "vpc_flow_logs" {
+  name              = "/vpc-flow-logs/${var.name_prefix}/${aws_vpc.this.id}"
+  retention_in_days = 5
+}
+
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role
+resource "aws_iam_role" "vpc_flow_logs_role" {
+  name = "${var.name_prefix}-vpc-flow-logs-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "vpc-flow-logs.amazonaws.com"
+        }
+        Action = "sts:AssumeRole"
+      }
+    ]
+  })
+}
+
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy
+resource "aws_iam_role_policy" "vpc_flow_logs_policy" {
+  name = "${var.name_prefix}-vpc-flow-logs-inline-policy"
+  role = aws_iam_role.vpc_flow_logs_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents",
+          "logs:DescribeLogGroups",
+          "logs:DescribeLogStreams"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/flow_log
+resource "aws_flow_log" "this" {
+  log_destination          = aws_cloudwatch_log_group.vpc_flow_logs.arn
+  log_destination_type     = "cloud-watch-logs"
+  iam_role_arn             = aws_iam_role.vpc_flow_logs_role.arn
+  traffic_type             = "ALL"
+  vpc_id                   = aws_vpc.this.id
+  max_aggregation_interval = 600
+
+  depends_on = [aws_iam_role_policy.vpc_flow_logs_policy]
+}
