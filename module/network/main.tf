@@ -70,24 +70,26 @@ resource "aws_subnet" "private" {
 }
 
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table
-# resource "aws_route_table" "private" {
-#   vpc_id = aws_vpc.this.id
-#   route {
-#     cidr_block     = "0.0.0.0/0"
-#     nat_gateway_id = aws_nat_gateway.this.id
-#   }
-#   tags = {
-#     Name = "${local.prefix}-private-rtb"
-#   }
-# }
+resource "aws_route_table" "private" {
+  count = var.create_nat_gateway ? 1 : 0
+
+  vpc_id = aws_vpc.this.id
+  route {
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.this[0].id
+  }
+  tags = {
+    Name = "${local.prefix}-private-rtb"
+  }
+}
 
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table_association
-# resource "aws_route_table_association" "private" {
-#   for_each = aws_subnet.private
+resource "aws_route_table_association" "private" {
+  for_each = var.create_nat_gateway ? aws_subnet.private : {}
 
-#   subnet_id      = each.value.id
-#   route_table_id = aws_route_table.private.id
-# }
+  subnet_id      = each.value.id
+  route_table_id = one(aws_route_table.private[*].id)
+}
 
 #--------------------------------------------------------------
 # Internet Gateway
@@ -105,18 +107,22 @@ resource "aws_internet_gateway" "this" {
 # NAT
 #--------------------------------------------------------------
 
-# # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eip
-# resource "aws_eip" "nat" {
-#   domain     = "vpc"
-#   depends_on = [aws_internet_gateway.this]
-# }
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eip
+resource "aws_eip" "nat" {
+  count = var.create_nat_gateway ? 1 : 0
 
-# # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/nat_gateway
-# resource "aws_nat_gateway" "this" {
-#   allocation_id = aws_eip.nat.id
-#   subnet_id     = aws_subnet.public["a"].id
-#   depends_on    = [aws_internet_gateway.this]
-# }
+  domain     = "vpc"
+  depends_on = [aws_internet_gateway.this]
+}
+
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/nat_gateway
+resource "aws_nat_gateway" "this" {
+  count = var.create_nat_gateway ? 1 : 0
+
+  allocation_id = aws_eip.nat[0].id
+  subnet_id     = aws_subnet.public[local.nat_public_subnet_key].id
+  depends_on    = [aws_internet_gateway.this]
+}
 
 #--------------------------------------------------------------
 # VPCフローログ

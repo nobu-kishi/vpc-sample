@@ -11,3 +11,4 @@ region      = "ap-northeast-1"
 vpc_cidr           = "10.0.0.0/16"
 public_subnet_azs  = ["a", "c"]
 private_subnet_azs = ["a", "c"]
+create_nat_gateway = false
